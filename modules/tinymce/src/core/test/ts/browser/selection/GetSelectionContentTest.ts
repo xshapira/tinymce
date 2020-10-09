@@ -1,4 +1,4 @@
-import { Assertions, Chain, GeneralSteps, Logger, Pipeline, Step } from '@ephox/agar';
+import { Assertions, Chain, Log, Pipeline, Step } from '@ephox/agar';
 import { UnitTest } from '@ephox/bedrock-client';
 import { TinyApis, TinyLoader } from '@ephox/mcagar';
 import { PlatformDetection } from '@ephox/sand';
@@ -22,7 +22,7 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
     input.parentNode.removeChild(input);
   });
 
-  const sAddTestDiv = Step.sync(function () {
+  const sAddTestDiv = Step.sync(() => {
     const div = document.createElement('div');
     div.innerHTML = 'xxx';
     div.contentEditable = 'true';
@@ -30,12 +30,15 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
     document.body.appendChild(div);
   });
 
-  const cGetContent = (args: any) => Chain.mapper((editor: Editor) => GetSelectionContent.getContent(editor, args));
+  const cGetContent = (args: any) =>
+    Chain.mapper((editor: Editor) =>
+      GetSelectionContent.getContent(editor, args));
 
-  const sAssertGetContent = (label: string, editor: Editor, expectedContents: string, args: any = {}) => Chain.asStep(editor, [
-    cGetContent(args),
-    Assertions.cAssertEq(label + ': Should be expected contents', expectedContents)
-  ]);
+  const sAssertGetContent = (label: string, editor: Editor, expectedContents: string, args: any = {}) =>
+    Chain.asStep(editor, [
+      cGetContent(args),
+      Assertions.cAssertEq(label + ': Should be expected contents', expectedContents)
+    ]);
 
   const sAssertGetContentOverrideBeforeGetContent = (label: string, editor: Editor, expectedContents: string, args: any = {}) => {
     const handler = (e) => {
@@ -45,15 +48,15 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
       }
     };
 
-    return GeneralSteps.sequence([
-      Step.sync(function () {
+    return Log.stepsAsStep('--', label, [
+      Step.sync(() => {
         editor.on('BeforeGetContent', handler);
       }),
       Chain.asStep(editor, [
         cGetContent(args),
         Assertions.cAssertEq(label + ': Should be expected contents', expectedContents)
       ]),
-      Step.sync(function () {
+      Step.sync(() => {
         editor.off('BeforeGetContent', handler);
       })
     ]);
@@ -63,45 +66,55 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
     const tinyApis = TinyApis(editor);
 
     Pipeline.async({}, [
-      Logger.t('Should be empty contents on a caret selection', GeneralSteps.sequence([
+      Log.stepsAsStep('TBA', 'Should be empty contents on a caret selection', [
         tinyApis.sSetContent('<p>a</p>'),
         tinyApis.sSetSelection([ 0, 0 ], 0, [ 0, 0 ], 0),
         sAssertGetContent('Should be empty selection on caret', editor, '')
-      ])),
-      Logger.t('Should be text contents on a range selection', GeneralSteps.sequence([
+      ]),
+      Log.stepsAsStep('TBA', 'Should be text contents on a range selection', [
         tinyApis.sSetContent('<p>a</p>'),
         tinyApis.sSetSelection([ 0, 0 ], 0, [ 0, 0 ], 1),
         sAssertGetContent('Should be some content', editor, 'a')
-      ])),
-      Logger.t('Should be text contents provided by override handler', GeneralSteps.sequence([
+      ]),
+      Log.stepsAsStep('TBA', 'Should be text contents provided by override handler', [
         tinyApis.sSetContent('<p>a</p>'),
         tinyApis.sSetSelection([ 0, 0 ], 0, [ 0, 0 ], 1),
         sAssertGetContentOverrideBeforeGetContent('Should be overridden content', editor, 'X')
-      ])),
-      Logger.t(`Should be text contents when editor isn't focused and format is text`, GeneralSteps.sequence([
+      ]),
+      Log.stepsAsStep('TBA', `Should be text contents when editor isn't focused and format is text`, [
         sAddTestDiv,
         tinyApis.sSetContent('<p>ab</p>'),
         tinyApis.sSetSelection([ 0, 0 ], 0, [ 0, 0 ], 2),
         sFocusDiv,
         sAssertGetContent('Should be some content', editor, 'ab', { format: 'text' }),
         sRemoveTestDiv
-      ])),
-      Logger.t('Should be text content with newline', GeneralSteps.sequence([
+      ]),
+      Log.stepsAsStep('TBA', 'Should be text content with newline', [
         tinyApis.sSetContent('<p>ab<br/>cd</p>'),
         tinyApis.sSetSelection([ 0, 0 ], 0, [ 0, 2 ], 2),
         sAssertGetContent('Should be some content', editor, `ab${Env.ie === 11 ? '\r\n' : '\n'}cd`, { format: 'text' })
-      ])),
-      Logger.t('Should be text content with leading visible spaces', GeneralSteps.sequence([
+      ]),
+      Log.stepsAsStep('TBA', 'Should be text content with leading visible spaces', [
         tinyApis.sSetContent('<p>content<em> Leading space</em></p>'),
         tinyApis.sSetSelection([ 0 ], 1, [ 0 ], 2),
         sAssertGetContent('Should be some content', editor, ' Leading space', { format: 'text' })
-      ])),
-      Logger.t('Should be text content with trailing visible spaces', GeneralSteps.sequence([
+      ]),
+      Log.stepsAsStep('TBA', 'Should be text content with trailing visible spaces', [
         tinyApis.sSetContent('<p><em>Trailing space </em>content</p>'),
         tinyApis.sSetSelection([ 0 ], 0, [ 0 ], 1),
         sAssertGetContent('Should be some content', editor, 'Trailing space ', { format: 'text' })
-      ])),
-      Logger.t('Should be text content without non-visible leading/trailing spaces', GeneralSteps.sequence([
+      ]),
+      Log.stepsAsStep('TINY-6448', 'pre blocks should have preserved spaces', [
+        tinyApis.sSetContent('<pre>          This      Has\n     Spaces</pre>'),
+        tinyApis.sSetSelection([ ], 0, [ ], 1),
+        sAssertGetContent('Should be some content', editor, '          This      Has\n     Spaces', { format: 'text' })
+      ]),
+      Log.stepsAsStep('TINY-6448', 'pre blocks should have preserved spaces', [
+        tinyApis.sSetContent('<pre><p>          This      Has\n     Spaces<p></pre>'),
+        tinyApis.sSetSelection([ ], 0, [ ], 1),
+        sAssertGetContent('Should be some content', editor, '          This      Has\n     Spaces', { format: 'text' })
+      ]),
+      Log.stepsAsStep('TBA', 'Should be text content without non-visible leading/trailing spaces', [
         tinyApis.sSetContent('<p><em> spaces </em></p>'),
         tinyApis.sSetSelection([ 0 ], 0, [ 0 ], 1),
         // Firefox, IE & Edge actually renders the trailing space within the editor in this case
@@ -113,7 +126,7 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
         tinyApis.sSetContent('<p> spaces </p>'),
         tinyApis.sSetSelection([ ], 0, [ ], 1),
         sAssertGetContent('Should be some content', editor, 'spaces', { format: 'text' })
-      ]))
+      ])
     ], onSuccess, onFailure);
   }, {
     selector: 'textarea',

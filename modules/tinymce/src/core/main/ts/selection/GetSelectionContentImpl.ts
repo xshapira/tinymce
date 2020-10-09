@@ -31,34 +31,41 @@ const getInnerText = (bin: HTMLElement) => {
   return Env.browser.isIE() ? trimLeadingCollapsibleText(text) : text;
 };
 
-const getTextContent = (editor: Editor): string => Optional.from(editor.selection.getRng()).map((rng) => {
-  const bin = editor.dom.add(editor.getBody(), 'div', {
-    'data-mce-bogus': 'all',
-    'style': 'overflow: hidden; opacity: 0;'
-  }, rng.cloneContents());
-  const text = getInnerText(bin);
+const getParentName = (editor: Editor, range: Range) => {
+  const contextBlock = editor.dom.getParent(range.commonAncestorContainer, editor.dom.isBlock);
 
-  // textContent will not strip leading/trailing spaces since it doesn't consider how it'll render
-  const nonRenderedText = Zwsp.trim(bin.textContent);
-  editor.dom.remove(bin);
+  return contextBlock ? contextBlock.nodeName : 'div';
+};
 
-  if (isCollapsibleWhitespace(nonRenderedText, 0) || isCollapsibleWhitespace(nonRenderedText, nonRenderedText.length - 1)) {
-    // If the bin contains a trailing/leading space, then we need to inspect the parent block to see if we should include the spaces
-    const parentBlock = editor.dom.getParent(rng.commonAncestorContainer, editor.dom.isBlock) as HTMLElement;
-    const parentBlockText = getInnerText(parentBlock);
-    const textIndex = parentBlockText.indexOf(text);
+const getTextContent = (editor: Editor): string =>
+  Optional.from(editor.selection.getRng()).map((rng) => {
+    const bin = editor.dom.add(editor.getBody(), getParentName(editor, rng), {
+      'data-mce-bogus': 'all',
+      'style': 'overflow: hidden; opacity: 0;'
+    }, rng.cloneContents());
+    const text = getInnerText(bin);
 
-    if (textIndex !== -1) {
-      const hasProceedingSpace = isCollapsibleWhitespace(parentBlockText, textIndex - 1);
-      const hasTrailingSpace = isCollapsibleWhitespace(parentBlockText, textIndex + text.length);
-      return (hasProceedingSpace ? ' ' : '') + text + (hasTrailingSpace ? ' ' : '');
+    // textContent will not strip leading/trailing spaces since it doesn't consider how it'll render
+    const nonRenderedText = Zwsp.trim(bin.textContent);
+    editor.dom.remove(bin);
+
+    if (isCollapsibleWhitespace(nonRenderedText, 0) || isCollapsibleWhitespace(nonRenderedText, nonRenderedText.length - 1)) {
+      // If the bin contains a trailing/leading space, then we need to inspect the parent block to see if we should include the spaces
+      const parentBlock = editor.dom.getParent(rng.commonAncestorContainer, editor.dom.isBlock) as HTMLElement;
+      const parentBlockText = getInnerText(parentBlock);
+      const textIndex = parentBlockText.indexOf(text);
+
+      if (textIndex !== -1) {
+        const hasProceedingSpace = isCollapsibleWhitespace(parentBlockText, textIndex - 1);
+        const hasTrailingSpace = isCollapsibleWhitespace(parentBlockText, textIndex + text.length);
+        return (hasProceedingSpace ? ' ' : '') + text + (hasTrailingSpace ? ' ' : '');
+      } else {
+        return text;
+      }
     } else {
       return text;
     }
-  } else {
-    return text;
-  }
-}).getOr('');
+  }).getOr('');
 
 const getSerializedContent = (editor: Editor, args: GetSelectionContentArgs): Content => {
   const rng = editor.selection.getRng(), tmpElm = editor.dom.create('body');
