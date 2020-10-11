@@ -1,10 +1,10 @@
-import { Assertions, Chain, Log, Pipeline, Step } from '@ephox/agar';
+import { Assertions, Chain, GeneralSteps, Log, Pipeline, Step } from '@ephox/agar';
 import { UnitTest } from '@ephox/bedrock-client';
 import { TinyApis, TinyLoader } from '@ephox/mcagar';
 import { PlatformDetection } from '@ephox/sand';
 import Editor from 'tinymce/core/api/Editor';
 import Env from 'tinymce/core/api/Env';
-import * as GetSelectionContent from 'tinymce/core/selection/GetSelectionContent';
+import { GetSelectionContentArgs, getContent } from 'tinymce/core/selection/GetSelectionContent';
 import Theme from 'tinymce/themes/silver/Theme';
 
 UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success, failure) => {
@@ -30,17 +30,17 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
     document.body.appendChild(div);
   });
 
-  const cGetContent = (args: any) =>
+  const cGetContent = (args: GetSelectionContentArgs) =>
     Chain.mapper((editor: Editor) =>
-      GetSelectionContent.getContent(editor, args));
+      getContent(editor, args));
 
-  const sAssertGetContent = (label: string, editor: Editor, expectedContents: string, args: any = {}) =>
+  const sAssertGetContent = (label: string, editor: Editor, expectedContents: string, args: GetSelectionContentArgs = {}) =>
     Chain.asStep(editor, [
       cGetContent(args),
       Assertions.cAssertEq(label + ': Should be expected contents', expectedContents)
     ]);
 
-  const sAssertGetContentOverrideBeforeGetContent = (label: string, editor: Editor, expectedContents: string, args: any = {}) => {
+  const sAssertGetContentOverrideBeforeGetContent = (label: string, editor: Editor, expectedContents: string, args: GetSelectionContentArgs = {}) => {
     const handler = (e) => {
       if (e.selection === true) {
         e.preventDefault();
@@ -48,7 +48,7 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
       }
     };
 
-    return Log.stepsAsStep('--', label, [
+    return Step.label(label, GeneralSteps.sequence([
       Step.sync(() => {
         editor.on('BeforeGetContent', handler);
       }),
@@ -59,7 +59,7 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
       Step.sync(() => {
         editor.off('BeforeGetContent', handler);
       })
-    ]);
+    ]));
   };
 
   TinyLoader.setupLight((editor: Editor, onSuccess, onFailure) => {
@@ -110,9 +110,14 @@ UnitTest.asynctest('browser.tinymce.selection.GetSelectionContentTest', (success
         sAssertGetContent('Should be some content', editor, '          This      Has\n     Spaces', { format: 'text' })
       ]),
       Log.stepsAsStep('TINY-6448', 'pre blocks should have preserved spaces', [
-        tinyApis.sSetContent('<pre><p>          This      Has\n     Spaces<p></pre>'),
+        tinyApis.sSetContent('<pre>          This      Has\n     Spaces</pre>'),
         tinyApis.sSetSelection([ ], 0, [ ], 1),
         sAssertGetContent('Should be some content', editor, '          This      Has\n     Spaces', { format: 'text' })
+      ]),
+      Log.stepsAsStep('TINY-6448', 'pre blocks should have preserved spaces', [
+        tinyApis.sSetContent('<p>          This      Has\n     Spaces</p>'),
+        tinyApis.sSetSelection([ ], 0, [ ], 1),
+        sAssertGetContent('Should be some content', editor, 'This Has Spaces', { format: 'text' })
       ]),
       Log.stepsAsStep('TBA', 'Should be text content without non-visible leading/trailing spaces', [
         tinyApis.sSetContent('<p><em> spaces </em></p>'),

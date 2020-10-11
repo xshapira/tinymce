@@ -34,7 +34,7 @@ const getInnerText = (bin: HTMLElement) => {
 const getParentName = (editor: Editor, range: Range) => {
   const contextBlock = editor.dom.getParent(range.commonAncestorContainer, editor.dom.isBlock);
 
-  return contextBlock ? contextBlock.nodeName : 'div';
+  return Optional.from(contextBlock).getOr('div');
 };
 
 const getTextContent = (editor: Editor): string =>
