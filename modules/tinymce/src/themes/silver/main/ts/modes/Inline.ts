@@ -115,7 +115,16 @@ const render = (editor: Editor, uiComponents: RenderUiComponents, rawUiConfig: R
   editor.on('show', render);
   editor.on('hide', ui.hide);
 
-  if (!toolbarPersist) {
+  if (toolbarPersist) {
+    editor.on('focus', () => {
+      ReadOnly.broadcastReadonly(uiComponents, false);
+    });
+    // Blur event will fire when clicking the menubar (not a button). This does not happen with Tiny 4
+    // due to the container having tabindex="-1". Bug?
+    editor.on('blur', () => {
+      ReadOnly.broadcastReadonly(uiComponents, true);
+    });
+  } else {
     editor.on('focus', render);
     editor.on('blur', ui.hide);
   }

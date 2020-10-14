@@ -4,19 +4,166 @@
 <head>
   <title>TinyMCE full featured Demo Page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+        font-family: 'Work Sans', sans-serif;
+        font-size: 16px;
+        line-height: 1.4;
+        margin: 2rem;
+    }
+
+    .editor {
+        max-width: 1200px;
+        margin: auto;
+        position: relative;
+    }
+
+    .toolbar {
+        min-height: 38px;
+        border: 1px solid #ccc;
+    }
+
+    .editable-area {
+        border-color: #ccc;
+        border-style: solid;
+        border-width: 0 1px 1px;
+        box-sizing: border-box;
+        height: calc(100vh - 4rem - 40px);
+        outline: none;
+        overflow: scroll;
+        padding: 1rem;
+    }
+
+    .tinymce:focus {
+        border-radius: 0.5px;
+        box-shadow: 0 0 0 4px #fff, 0 0 0 7px #706FD333;
+        outline: 0;
+    }
+
+    /* Editor overrides */
+
+    .tox-editor-header {
+        max-width: 100% !important;
+    }
+
+    .tox-tinymce {
+        /* display: flex !important; */
+        /* margin: 2px; */
+        position: absolute !important;
+        top: 1px !important;
+        left: 1px !important;
+        right: 1px !important;
+        /* z-index: var(--counter) !important; */
+    }
+
+    .tox-tinymce .tox-tbtn {
+        /* opacity: .4; */
+    }
+
+    .tox-tinymce[style*="flex"] {
+        /* outline: 1px solid red; */
+        /* z-index: var(--counter) !important; */
+    }
+
+    .tox-tinymce[style*="flex"] .tox-tbtn {
+        opacity: 1;
+    }
+
+  </style>
 </head>
 
 <body>
-  <main>
-    <h1>Tinymce full featured Page</h1>
-    <div id="ephox-ui">
-      <textarea></textarea>
+  <div class="editor">
+    <div class="toolbar" id="toolbar"></div>
+    <div class="editable-area">
+        <table style="background-color: #f2f2f2; width: 100%;" border="0">
+            <tr>
+                <td align="center" cellpadding="16px" style="padding: 16px;">
+                        <table border="0" width="100%" style="max-width: 600px; width: 100%; background-color: #ffffff; border-top-left-radius: 16px; border-top-right-radius: 16px; padding-top: 32px; padding-left: 32px; padding-right: 32px;">
+                            <tr>
+                                <td width="64px">
+                                    <!-- <img src="images/email-template/vcf-logo-2.png" width="64" height="64" alt="Logo"> -->
+                                </td>
+                                <td align="right">
+                                    <p style="font-family: 'Fira Sans', sans-serif; font-size: 17px; font-weight: bold;"><strong>Monthly Newsletter</strong></p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table border="0" width="100%" style="max-width: 600px; width: 100%; background-color: #ffffff; padding-left: 32px; padding-right: 32px; padding-bottom: 32px;">
+                            <tr>
+                                <td>
+                                    <div id="tinymce-1" class="tinymce" style="font-family: 'Fira Sans', sans-serif; color: #222222; font-size: 15px; line-height: 1.5;">
+                                        <h1 style="font-size: 32px; font-weight: bold;">Looking back at the original Olympus OM1</h1>
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum a molestie nisl, at sodales diam. Vivamus ullamcorper convallis odio, ut lacinia sem. Proin in dui sit amet justo hendrerit imperdiet. Nullam ante felis, tincidunt et bibendum ut, pellentesque sit amet est. Proin cursus varius lorem ut porttitor.</p>
+                                        <p>Duis ac velit eget purus vestibulum finibus. Nulla facilisi. Donec sit amet erat metus. Phasellus id ullamcorper sapien, eget vehicula lectus. Integer at mi id sapien dignissim gravida id ac metus. Duis vel varius quam. Donec rhoncus nunc id arcu molestie, a auctor ipsum viverra. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Maecenas id interdum lorem.</p>
+                                        <p><a style="background-color: #706fd3; padding: 12px 16px; color: #ffffff; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; text-decoration: none; display: inline-block;" href="https://tiny.cloud">Take me to the Olympus OM1</a></p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table border="0" width="100%" style="max-width: 600px; width: 100%; background-color: #ffffff;">
+                            <tr>
+                                <td width="50%" style="padding-left: 32px; padding-right: 8px; padding-bottom: 32px; padding-top: 16px; vertical-align: top;">
+                                    <div id="tinymce-2" class="tinymce" style="font-family: 'Fira Sans', sans-serif; color: #222222; font-size: 15px; line-height: 1.5;">
+                                        <!-- <p><img src="images/email-template/feature_0.png" alt="" width="100%" /></p> -->
+                                        <h2 style="font-size: 18px;">Featured: Kodak Instamatic</h2>
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum a molestie nisl, at sodales diam.</p>
+                                        <p><em><a href="https://unsplash.com/photos/ETRn6yJN5SM">Photo by Britt Geiser, Unsplash</a></em></p>
+                                    </div>
+                                </td>
+                                <td width="50%" style="padding-right: 32px; padding-left: 8px; padding-bottom: 32px; padding-top: 16px; vertical-align: top;">
+                                    <div id="tinymce-3" class="tinymce" style="font-family: 'Fira Sans', sans-serif; color: #222222; font-size: 15px; line-height: 1.5;">
+                                        <!-- <p><img src="images/email-template/feature_1.png" alt="" width="100%" /></p> -->
+                                        <h2 style="font-size: 18px;">Featured: Pony 828</h2>
+                                        <p>Vestibulum a molestie nisl, at sodales diam. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                                        <p><em><a href="https://unsplash.com/photos/ETRn6yJN5SM">Photo by Markus Spiske on Unsplash</a></em></p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table border="0"  width="100%" style="max-width: 600px; width: 100%; background-color: #ffffff; padding-top: 32px; padding-left: 32px; padding-right: 32px; padding-bottom: 32px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                            <tr>
+                                <td align="center">
+                                    <!-- <img src="images/email-template/logo.jpg" width="48"> -->
+                                    <p style="font-family: 'Fira Sans', sans-serif; font-size: 14px; color: #222222;">VintageCameraFoundation</p>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center">
+                                    <h3 style="font-family: 'Fira Sans', sans-serif; font-size: 14px; color: #aaaaaa;">Follow us on</h3>
+                                    <table>
+                                        <tr>
+                                            <!-- <td><a href="#"><img src="images/email-template/social-fb.jpg" width="32"></a></td>
+                                            <td><a href="#"><img src="images/email-template/social-twitter.jpg" width="32"></a></td>
+                                            <td><a href="#"><img src="images/email-template/social-flickr.jpg" width="32"></a></td>
+                                            <td><a href="#"><img src="images/email-template/social-instagram.jpg" width="32"></a></td> -->
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    <!-- </div> -->
+
+                    <table style="width: 100%; margin-top: 32px" border="0">
+                        <tr>
+                            <td align="center">
+                                <a href="#" style="font-family: 'Fira Sans', sans-serif; font-size: 14px; color: #5464BF;">Unsubscribe from this list</a>
+                                <p style="font-family: 'Fira Sans', sans-serif; font-size: 14px; color: #aaaaaa;">© Vintage Camera Foundation, All rights reserved<br>Renmarkstorget 6, 90326 Umeå</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </div>
-    <div class="tinymce">Inline demo</div>
+    </div>
     <script src="../../../../js/tinymce/tinymce.js"></script>
     <script src="../../../../scratch/demos/core/demo.js"></script>
     <script>demos.FullDemo();</script>
-  </main>
 </body>
 
 </html>

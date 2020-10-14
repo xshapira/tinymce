@@ -1,4 +1,4 @@
-import { Chain, Log, Pipeline } from '@ephox/agar';
+import { ApproxStructure, Assertions, Chain, ChainSequence, Guard, Log, Pipeline, UiFinder } from '@ephox/agar';
 import { UnitTest } from '@ephox/bedrock-client';
 import { Editor as McEditor, UiChains } from '@ephox/mcagar';
 import { SugarElement, SugarBody, Insert, Focus, Remove, Visibility } from '@ephox/sugar';
@@ -26,29 +26,53 @@ UnitTest.asynctest('browser.tinymce.themes.silver.editor.ToolbarPersistTest', (s
     Remove.remove(div);
   });
 
+  const cAssertToolbarState = (label: string, disabled: boolean) => Chain.fromIsolatedChainsWith(SugarBody.body(), [
+    UiFinder.cFindIn('.tox-toolbar'),
+    Chain.control(
+      Assertions.cAssertStructure(label, ApproxStructure.build((s, str, arr) =>
+        s.element('div', {
+          classes: [
+            arr.has('tox-toolbar'),
+            disabled ? arr.has('tox-tbtn--disabled') : arr.not('tox-tbtn--disabled')
+          ],
+          attrs: { 'aria-disabled': str.is(disabled + '') }
+        })
+      )),
+      Guard.tryUntil('Waiting for toolbar state')
+    )
+  ]);
+
   Pipeline.async({}, [
-    Log.chainsAsStep('TINY-4847', 'Test toolbar_persist. Focus & unfocus should not affect toolbar visibility', [
+    Log.chainsAsStep('TINY-4847', 'Test toolbar_persist', [
       McEditor.cFromSettings({
         theme: 'silver',
         inline: true,
         base_url: '/project/tinymce/js/tinymce',
         toolbar_persist: true
       }),
-
       UiChains.cWaitForPopup('Wait for editor to be visible', '.tox-tinymce-inline'),
-      cUnfocusEditor,
-      Chain.wait(200), // Need to wait since nothing should happen.
-      UiChains.cWaitForPopup('Wait for editor to be visible', '.tox-tinymce-inline'),
-
-      cHideEditorUi,
-
-      cWaitForHidden('Wait for editor to be hidden', '.tox-tinymce-inline'),
       cFocusEditor,
-      Chain.wait(200), // Need to wait since nothing should happen.
-      cWaitForHidden('Wait for editor to be hidden', '.tox-tinymce-inline'),
 
-      cShowEditorUi,
-      UiChains.cWaitForPopup('Wait for editor to be visible', '.tox-tinymce-inline'),
+      Chain.label('Editor should persist and toggle between enabled/disabled on focus/blur', ChainSequence.sequence([
+        cUnfocusEditor,
+        cAssertToolbarState('Editor UI should disable on blur', true),
+        Chain.wait(100), // Need to wait since editor should remain visible.
+        UiChains.cWaitForPopup('Wait for editor to be visible', '.tox-tinymce-inline'),
+        cFocusEditor,
+        cAssertToolbarState('Editor UI should enable on focus', false)
+      ])),
+
+      Chain.label('Should be able to hide/show editor using APIs. Editor should "persist" in its hidden state once hidden', ChainSequence.sequence([
+        cUnfocusEditor,
+        cHideEditorUi,
+        cWaitForHidden('Wait for editor to be hidden', '.tox-tinymce-inline'),
+        cFocusEditor,
+        Chain.wait(100), // Need to wait since editor should remain hidden.
+        cWaitForHidden('Wait for editor to be hidden', '.tox-tinymce-inline'),
+        cShowEditorUi,
+        UiChains.cWaitForPopup('Wait for editor to be visible', '.tox-tinymce-inline')
+      ])),
+
 
       McEditor.cRemove
     ])
